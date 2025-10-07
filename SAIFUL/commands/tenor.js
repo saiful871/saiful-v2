@@ -27,7 +27,7 @@ module.exports.config = {
 };
 
 module.exports.run = async function ({ api, event, args }) {
-  if (!args[0]) return api.sendMessage("🔍 | দয়া করে কোনো শব্দ লিখুন যেমন: !tenor happy", event.threadID, event.messageID);
+  if (!args[0]) return api.sendMessage("🔍 | দয়া করে কোনো শব্দ লিখুন যেমন: /tenor happy", event.threadID, event.messageID);
 
   const query = args.join(" ");
   const waitMsg = await api.sendMessage(`🔎 Searching Tenor for “${query}” ...`, event.threadID, event.messageID);
