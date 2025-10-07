@@ -4,7 +4,7 @@ let simsim = "";
 
 (async () => {
   try {
-    const res = await axios.get("https://raw.githubusercontent.com/rummmmna21/rx-api/refs/heads/main/baseApiUrl.json");
+    const res = await axios.get("https://raw.githubusercontent.com/rummmmna21/rx-api/main/baseApiUrl.json");
     if (res.data && res.data.baby) {
       simsim = res.data.baby;
     }
@@ -16,24 +16,12 @@ module.exports.config = {
   version: "1.0.5",
   hasPermssion: 0,
   credits: "rX",
-  description: "AI Chatbot with Teach & List support (Boxed Replies)",
+  description: "AI Chatbot with Teach & List support",
   commandCategory: "chat",
   usages: "[query]",
   cooldowns: 0,
   prefix: false
 };
-
-// Helper function to create boxed message
-function makeBox(senderName, replyText) {
-  return `╭──────•◈•──────╮
-   🌸 Hᴇʏ Xᴀɴ, I’ᴍ Rᴀᴛʀɪ 🌸   
-   
- ❄ Dᴇᴀʀ, ${senderName}
-
- 💌 ${replyText}
-
-╰──────•◈•──────╯`;
-}
 
 module.exports.run = async function ({ api, event, args, Users }) {
   const uid = event.senderID;
@@ -43,7 +31,6 @@ module.exports.run = async function ({ api, event, args, Users }) {
   try {
     if (!simsim) return api.sendMessage("❌ API not loaded yet.", event.threadID, event.messageID);
 
-    // Autoteach toggle
     if (args[0] === "autoteach") {
       const mode = args[1];
       if (!["on", "off"].includes(mode)) {
@@ -54,7 +41,6 @@ module.exports.run = async function ({ api, event, args, Users }) {
       return api.sendMessage(`✅ Auto teach is now ${status ? "ON 🟢" : "OFF 🔴"}`, event.threadID, event.messageID);
     }
 
-    // List command
     if (args[0] === "list") {
       const res = await axios.get(`${simsim}/list`);
       return api.sendMessage(
@@ -64,7 +50,6 @@ module.exports.run = async function ({ api, event, args, Users }) {
       );
     }
 
-    // Msg command
     if (args[0] === "msg") {
       const trigger = args.slice(1).join(" ").trim();
       if (!trigger) return api.sendMessage("❌ | Use: !baby msg [trigger]", event.threadID, event.messageID);
@@ -79,7 +64,6 @@ module.exports.run = async function ({ api, event, args, Users }) {
       return api.sendMessage(msg, event.threadID, event.messageID);
     }
 
-    // Teach command
     if (args[0] === "teach") {
       const parts = query.replace("teach ", "").split(" - ");
       if (parts.length < 2)
@@ -90,7 +74,6 @@ module.exports.run = async function ({ api, event, args, Users }) {
       return api.sendMessage(`✅ ${res.data.message}`, event.threadID, event.messageID);
     }
 
-    // Edit command
     if (args[0] === "edit") {
       const parts = query.replace("edit ", "").split(" - ");
       if (parts.length < 3)
@@ -101,7 +84,6 @@ module.exports.run = async function ({ api, event, args, Users }) {
       return api.sendMessage(res.data.message, event.threadID, event.messageID);
     }
 
-    // Remove command
     if (["remove", "rm"].includes(args[0])) {
       const parts = query.replace(/^(remove|rm)\s*/, "").split(" - ");
       if (parts.length < 2)
@@ -112,19 +94,14 @@ module.exports.run = async function ({ api, event, args, Users }) {
       return api.sendMessage(res.data.message, event.threadID, event.messageID);
     }
 
-    // Normal query / empty query
     if (!query) {
       const texts = ["Hey baby 💖", "Yes, I'm here 😘"];
-      const randReply = texts[Math.floor(Math.random() * texts.length)];
-      const message = makeBox(senderName, randReply);
-      return api.sendMessage(message, event.threadID);
+      const reply = texts[Math.floor(Math.random() * texts.length)];
+      return api.sendMessage(reply, event.threadID);
     }
 
-    // AI response
     const res = await axios.get(`${simsim}/simsimi?text=${encodeURIComponent(query)}&senderName=${encodeURIComponent(senderName)}`);
-    const responseText = Array.isArray(res.data.response) ? res.data.response[0] : res.data.response;
-    const message = makeBox(senderName, responseText);
-    return api.sendMessage(message, event.threadID, (err, info) => {
+    return api.sendMessage(res.data.response, event.threadID, (err, info) => {
       if (!err) {
         global.client.handleReply.push({
           name: module.exports.config.name,
@@ -134,7 +111,6 @@ module.exports.run = async function ({ api, event, args, Users }) {
         });
       }
     }, event.messageID);
-
   } catch (e) {
     return api.sendMessage(`❌ Error: ${e.message}`, event.threadID, event.messageID);
   }
@@ -147,9 +123,7 @@ module.exports.handleReply = async function ({ api, event, Users }) {
 
   try {
     const res = await axios.get(`${simsim}/simsimi?text=${encodeURIComponent(text)}&senderName=${encodeURIComponent(senderName)}`);
-    const responseText = Array.isArray(res.data.response) ? res.data.response[0] : res.data.response;
-    const message = makeBox(senderName, responseText);
-    return api.sendMessage(message, event.threadID, (err, info) => {
+    return api.sendMessage(res.data.response, event.threadID, (err, info) => {
       if (!err) {
         global.client.handleReply.push({
           name: module.exports.config.name,
@@ -170,8 +144,7 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
 
   const senderName = await Users.getNameUser(event.senderID);
 
-  // Trigger words for casual reply
-  const triggers = ["Babu", "janu", "xan", "babu", "Bot", "bot"];
+  const triggers = ["baby", "bby", "xan", "Baby", "bot", "Bot"];
   if (triggers.includes(text)) {
     const replies = [
       "𝐀𝐬𝐬𝐚𝐥𝐚𝐦𝐮 𝐰𝐚𝐥𝐚𝐢𝐤𝐮𝐦 ♥",
@@ -187,13 +160,10 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
       "আম গাছে আম নাই ঢিল কেন মারো, তোমার সাথে প্রেম নাই বেবি কেন ডাকো 😒🐸",
       "কি হলো, মিস টিস করচ্ছো নাকি 🤣",
       "𝐓𝐫𝐮𝐬𝐭 𝐦𝐞 𝐢𝐚𝐦 𝐦𝐚𝐫𝐢𝐚 🧃",
-      " Hᴇʏ Xᴀɴ, I’ᴍ Rᴀᴛʀɪ "
+      "𝐇ᴇʏ 𝐗ᴀɴ 𝐈’ᴍ 𝐌ᴀʀɪᴀ 𝐁ᴀʙʏ✨"
     ];
-
-    const randReply = replies[Math.floor(Math.random() * replies.length)];
-    const message = makeBox(senderName, randReply);
-
-    return api.sendMessage(message, event.threadID, (err, info) => {
+    const reply = replies[Math.floor(Math.random() * replies.length)];
+    return api.sendMessage(reply, event.threadID, (err, info) => {
       if (!err) {
         global.client.handleReply.push({
           name: module.exports.config.name,
@@ -205,17 +175,14 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
     });
   }
 
-  const matchPrefix = /^(bebe|janu|xan|bbz|mari|arshi)\s+/i;
+  const matchPrefix = /^(baby|bby|xan|bbz|mari|মারিয়া)\s+/i;
   if (matchPrefix.test(text)) {
     const query = text.replace(matchPrefix, "").trim();
     if (!query) return;
 
     try {
       const res = await axios.get(`${simsim}/simsimi?text=${encodeURIComponent(query)}&senderName=${encodeURIComponent(senderName)}`);
-      const responseText = Array.isArray(res.data.response) ? res.data.response[0] : res.data.response;
-      const message = makeBox(senderName, responseText);
-
-      return api.sendMessage(message, event.threadID, (err, info) => {
+      return api.sendMessage(res.data.response, event.threadID, (err, info) => {
         if (!err) {
           global.client.handleReply.push({
             name: module.exports.config.name,
@@ -230,7 +197,6 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
     }
   }
 
-  // Auto-teach reply
   if (event.type === "message_reply") {
     try {
       const setting = await axios.get(`${simsim}/setting`);
