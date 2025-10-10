@@ -39,7 +39,7 @@ module.exports.run = async function ({ api, event }) {
     const seconds = Math.floor(uptime % 60);
 
     const ping = Date.now() - event.timestamp;
-    const owner = "Saiful";
+    const owner = "Saiful Islam ";
 
     // Title (left side)
     ctx.textAlign = "left";
