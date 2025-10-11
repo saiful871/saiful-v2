@@ -118,7 +118,7 @@ module.exports.run = async function ({ api, event, Users, Threads }) {
           `🏷️ Group: ${groupName}\n` +
           `🔢 Member count: ${memberCount}\n` +
           `━━━━━━━━━━━━━━━━━━\n` +
-          `😂 ক্যাপশন: "${caption}"\n` +
+          `"${caption}"\n` +
           `━━━━━━━━━━━━━━━━━━\n` +
           `👑 Bot Owner: Saiful Islam 💻`,
         mentions: [{ tag: `@${userName}`, id: leftUser }],
@@ -145,7 +145,7 @@ module.exports.run = async function ({ api, event, Users, Threads }) {
       (await Users.getNameUser(leftUser)) ||
       "Unknown User";
     api.sendMessage(
-      `⚠️ ${name} কে কেউ রিমুভ করেছে!\nকে পেছন থেকে লাথ মারছে মনে হয় 😏`,
+      `⚠️ @${name} কে @${authorName} এডমিন তরে পিছন থেকে লাথি মেরে বের করে দিছে 😏`,
       threadID
     );
   }
