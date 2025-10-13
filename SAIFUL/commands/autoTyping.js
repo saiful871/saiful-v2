@@ -1,53 +1,62 @@
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+const delay = ms => new Promise(res => setTimeout(res, ms));
 
 module.exports.config = {
   name: "autoTyping",
-  version: "1.1.2",
+  version: "1.2.0",
   hasPermssion: 0,
-  credits: "rX Abdullah + Saiful Fix",
-  description: "Auto typing effect for all outgoing messages (Mirai Bot)",
+  credits: "rX Abdullah + Saiful Fix Final",
+  description: "Simulates typing effect before sending every message (works on all Mirai mods)",
   commandCategory: "system",
   usages: "",
   cooldowns: 1,
 };
 
 module.exports.handleEvent = async function({ api }) {
-  if (api._autoTypingPatched) return; // prevent duplicate patch
+  // prevent multiple injection
+  if (api._autoTypingPatched) return;
   api._autoTypingPatched = true;
 
+  // backup original sendMessage
   const originalSendMessage = api.sendMessage;
 
   api.sendMessage = async function(message, threadID, callback, messageID) {
     try {
-      // calculate delay time
-      let delayTime = 1200;
-      const msgText = typeof message === "string" ? message : message?.body || "";
+      let msgBody = "";
+      if (typeof message === "string") msgBody = message;
+      else if (message && message.body) msgBody = message.body;
 
-      if (msgText.length > 0) {
-        delayTime = Math.min(5000, Math.max(800, msgText.length * 50));
+      // calculate delay (simulate typing speed)
+      const delayTime = Math.min(5000, Math.max(800, msgBody.length * 60));
+
+      // log for debugging
+      console.log(`[AutoTyping] Typing for ${delayTime}ms before sending message to ${threadID}...`);
+
+      // try sending typing indicator (if API supports)
+      try {
+        if (typeof api.sendTypingIndicator === "function") {
+          api.sendTypingIndicator(threadID, true);
+        }
+      } catch (e) {
+        // ignore if not supported
       }
 
-      // send typing indicator (if supported)
-      if (api.sendTypingIndicator) {
-        api.sendTypingIndicator(threadID, true);
-      } else {
-        // fallback: simulate typing via delay
-        console.log(`[Typing Effect] ${delayTime}ms before sending...`);
-      }
-
-      // wait before sending
+      // wait before actually sending
       await delay(delayTime);
 
-      if (api.sendTypingIndicator) {
-        api.sendTypingIndicator(threadID, false);
-      }
+      // stop typing if supported
+      try {
+        if (typeof api.sendTypingIndicator === "function") {
+          api.sendTypingIndicator(threadID, false);
+        }
+      } catch (e) {}
 
+      // finally send the message
       return originalSendMessage.call(api, message, threadID, callback, messageID);
     } catch (err) {
-      console.error("⚠️ AutoTyping Error:", err);
+      console.error("❌ AutoTyping Error:", err);
       return originalSendMessage.call(api, message, threadID, callback, messageID);
     }
   };
 
-  console.log("✅ AutoTyping effect is now enabled globally.");
+  console.log("✅ AutoTyping module activated successfully!");
 };
