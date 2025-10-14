@@ -8,7 +8,7 @@ module.exports.config = {
   name: "namaz",
   version: "1.0.1",
   hasPermssion: 0,
-  credits: "Akash + Saiful Edit",
+  credits: "Saiful",
   description: "প্রতিদিন নামাজের সময় সব গ্রুপে অটো নোটিফিকেশন পাঠাবে",
   commandCategory: "Islamic",
   usages: "অটো রান",
