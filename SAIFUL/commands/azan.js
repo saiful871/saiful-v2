@@ -8,7 +8,7 @@ module.exports.config = {
   name: "azan",
   version: "3.5.0",
   hasPermssion: 0,
-  credits: "Akash + Saiful Edit",
+  credits: "Saiful",
   description: "প্রতিদিন আজান ও নামাজের সময় সব গ্রুপে অটো নোটিফিকেশন পাঠাবে",
   commandCategory: "Islamic",
   usages: "অটো রান",
