@@ -1,14 +1,14 @@
-const axios = require("axios");
-const fs = require("fs");
+const fs = require("fs-extra");
 const path = require("path");
+const axios = require("axios");
 const Canvas = require("canvas");
 
 module.exports.config = {
   name: "fm",
-  version: "5.0",
+  version: "5.1.0",
   hasPermssion: 0,
-  credits: "Helal + Cyber Sujon + Fix & Upgrade by GPT-5",
-  description: "Show full group collage with cover group photo and admin list",
+  credits: "Helal + Cyber Sujon + Updated by GPT-5 (Saiful Islam request)",
+  description: "Full group collage with group photo, name, and admin/member count",
   commandCategory: "Group",
   usages: ".fm",
   cooldowns: 10
@@ -24,44 +24,46 @@ module.exports.run = async function ({ api, event }) {
 
     api.sendMessage(`🎨 ${groupName} গ্রুপের তথ্য সংগ্রহ হচ্ছে...`, event.threadID);
 
-    // Fetch group profile photo
-    const groupPicUrl = `https://graph.facebook.com/${groupID}/picture?width=500&height=500&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
+    // গ্রুপ প্রোফাইল ফটো লিংক
+    const groupPicUrl = `https://graph.facebook.com/${groupID}/picture?width=600&height=600&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
 
+    // ক্যানভাস সেটআপ
     const width = 1920, height = 1080;
     const canvas = Canvas.createCanvas(width, height);
     const ctx = canvas.getContext("2d");
 
-    // Background gradient
+    // ব্যাকগ্রাউন্ড গ্রেডিয়েন্ট
     const gradient = ctx.createLinearGradient(0, 0, width, height);
     gradient.addColorStop(0, "#141E30");
     gradient.addColorStop(1, "#243B55");
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
 
-    // --- Group profile photo top ---
+    // 🖼️ উপরে গ্রুপ প্রোফাইল ফটো
     try {
       const groupPicData = await axios.get(groupPicUrl, { responseType: "arraybuffer" });
       const groupPic = await Canvas.loadImage(Buffer.from(groupPicData.data, "binary"));
-      const picSize = 200;
+      const size = 200;
+
       ctx.save();
       ctx.beginPath();
-      ctx.arc(width / 2, 150, picSize / 2, 0, Math.PI * 2);
+      ctx.arc(width / 2, 150, size / 2, 0, Math.PI * 2);
       ctx.closePath();
       ctx.clip();
-      ctx.drawImage(groupPic, width / 2 - picSize / 2, 100 - picSize / 4, picSize, picSize);
+      ctx.drawImage(groupPic, width / 2 - size / 2, 100 - size / 4, size, size);
       ctx.restore();
 
-      // Circle border
+      // গোল্ড সার্কেল বর্ডার
       ctx.lineWidth = 6;
       ctx.strokeStyle = "#FFD700";
       ctx.beginPath();
-      ctx.arc(width / 2, 150, picSize / 2 + 3, 0, Math.PI * 2);
+      ctx.arc(width / 2, 150, size / 2 + 3, 0, Math.PI * 2);
       ctx.stroke();
-    } catch (e) {
-      console.log("⚠️ Group photo load failed:", e.message);
+    } catch (err) {
+      console.log("⚠️ Group profile load failed:", err.message);
     }
 
-    // --- Group name & info ---
+    // গ্রুপ নাম ও ইনফো
     ctx.font = "bold 70px Sans-serif";
     ctx.fillStyle = "#FFFFFF";
     ctx.textAlign = "center";
@@ -71,7 +73,7 @@ module.exports.run = async function ({ api, event }) {
     ctx.fillStyle = "#FFD700";
     ctx.fillText(`👥 সদস্য: ${members.length} | 👑 অ্যাডমিন: ${admins.length}`, width / 2, 380);
 
-    // --- Fetch admin names ---
+    // অ্যাডমিন নাম সংগ্রহ
     let adminNames = [];
     for (const id of admins) {
       try {
@@ -83,7 +85,7 @@ module.exports.run = async function ({ api, event }) {
       }
     }
 
-    // --- Draw member profile circles ---
+    // সব মেম্বারদের প্রোফাইল ফটো আঁকা
     const radius = 40;
     const margin = 15;
     const startY = 450;
@@ -104,7 +106,7 @@ module.exports.run = async function ({ api, event }) {
         ctx.drawImage(img, x - radius, y - radius, radius * 2, radius * 2);
         ctx.restore();
 
-        // Gold border for admins
+        // যদি অ্যাডমিন হয় → গোল্ড বর্ডার
         if (admins.includes(id)) {
           ctx.lineWidth = 3;
           ctx.strokeStyle = "#FFD700";
@@ -119,11 +121,11 @@ module.exports.run = async function ({ api, event }) {
           y += radius * 2 + margin;
         }
       } catch (err) {
-        console.log("⚠️ Member image load failed:", err.message);
+        console.log("⚠️ Member photo load failed:", err.message);
       }
     }
 
-    // --- Admin section bottom ---
+    // নিচে অ্যাডমিন লিস্ট
     ctx.font = "bold 40px Sans-serif";
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
@@ -138,7 +140,7 @@ module.exports.run = async function ({ api, event }) {
       textY += 38;
     }
 
-    // --- Save and send ---
+    // ছবি সেভ করা
     const outPath = path.join(__dirname, "fm_group_collage.jpg");
     fs.writeFileSync(outPath, canvas.toBuffer("image/jpeg"));
 
@@ -157,7 +159,7 @@ module.exports.run = async function ({ api, event }) {
   }
 };
 
-// Helper: Text wrapping
+// লাইন ভাঙার হেল্পার ফাংশন
 function wrapText(ctx, text, maxWidth) {
   const words = text.split(" ");
   const lines = [];
@@ -174,4 +176,4 @@ function wrapText(ctx, text, maxWidth) {
   }
   lines.push(line.trim());
   return lines;
-        }
+    }
