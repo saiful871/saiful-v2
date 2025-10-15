@@ -3,15 +3,14 @@ const fs = require("fs");
 const path = require("path");
 const { createCanvas, loadImage, registerFont } = require("canvas");
 
-// ✅ বাংলা ফন্ট (যাতে বাংলা নাম সঠিকভাবে দেখায়)
 registerFont(path.join(__dirname, "NotoSansBengali-Regular.ttf"), { family: "Bangla" });
 
 module.exports.config = {
   name: "fm",
-  version: "3.8",
+  version: "4.0",
   hasPermssion: 0,
-  credits: "Helal + Cyber Sujon + Final GPT-5 Edit",
-  description: "Show group photo, admins, members & all admin names (Bangla-English auto)",
+  credits: "Helal + Cyber Sujon + Final Fix by GPT-5",
+  description: "Show group collage with full admin name list (Bangla-English mixed)",
   commandCategory: "Group",
   usages: ".fm",
   cooldowns: 10
@@ -20,7 +19,8 @@ module.exports.config = {
 module.exports.run = async function ({ api, event }) {
   try {
     const info = await api.getThreadInfo(event.threadID);
-    if (!info || !info.participantIDs) return api.sendMessage("⚠️ গ্রুপের তথ্য আনতে পারছি না।", event.threadID);
+    if (!info || !info.participantIDs)
+      return api.sendMessage("⚠️ গ্রুপের তথ্য আনা যায়নি।", event.threadID);
 
     const members = info.participantIDs || [];
     const admins = info.adminIDs?.map(a => a.id) || [];
@@ -35,16 +35,14 @@ module.exports.run = async function ({ api, event }) {
     const width = 1920, height = 1080;
     const canvas = createCanvas(width, height);
     const ctx = canvas.getContext("2d");
-
     ctx.fillStyle = "#141414";
     ctx.fillRect(0, 0, width, height);
 
-    // ✅ গ্রুপ প্রোফাইল ছবি
+    // Group profile
     if (groupImage) {
       try {
         const imgRes = await axios.get(groupImage, { responseType: "arraybuffer" });
         const groupPic = await loadImage(Buffer.from(imgRes.data, "binary"));
-
         const size = 200;
         ctx.save();
         ctx.beginPath();
@@ -53,12 +51,10 @@ module.exports.run = async function ({ api, event }) {
         ctx.clip();
         ctx.drawImage(groupPic, width / 2 - size / 2, 20, size, size);
         ctx.restore();
-      } catch (err) {
-        console.log("⚠️ Group image load error:", err.message);
-      }
+      } catch {}
     }
 
-    // ✅ গ্রুপ নাম + তথ্য
+    // Group name
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 70px Bangla";
@@ -66,7 +62,7 @@ module.exports.run = async function ({ api, event }) {
     ctx.font = "bold 38px Sans-serif";
     ctx.fillText(`👑 Admins: ${admins.length} | 👥 Members: ${members.length}`, width / 2, 360);
 
-    // ✅ মেম্বারদের ছবি আঁকা
+    // Draw member pictures
     const radius = 55;
     const margin = 25;
     const perRow = Math.floor(width / (radius * 2 + margin));
@@ -99,70 +95,60 @@ module.exports.run = async function ({ api, event }) {
           x = radius + margin;
           y += radius * 2 + margin;
         }
-      } catch (err) {
-        console.log("❌ User photo error:", id);
-      }
+      } catch {}
     }
 
-    // ✅ সব অ্যাডমিনের নাম ফেচ
+    // Fetch admin names
     let adminNames = [];
     for (const id of admins) {
       try {
         const info = await api.getUserInfo(id);
-        let name = info[id]?.name || "Unknown";
+        const name = info[id]?.name || "Unknown";
         adminNames.push(name);
-      } catch (err) {
-        console.log("⚠️ Can't fetch admin name:", id);
+      } catch {
+        adminNames.push("Unknown");
       }
     }
 
-    if (adminNames.length === 0) adminNames.push("❌ অ্যাডমিন নাম পাওয়া যায়নি");
-
-    // ✅ বাংলা-ইংরেজি ডিটেকশন
-    const mixedNames = adminNames.map(name => {
-      return /[\u0980-\u09FF]/.test(name)
-        ? { text: name, font: "32px Bangla" } // বাংলা ফন্ট
-        : { text: name, font: "32px Sans-serif" }; // ইংরেজি ফন্ট
-    });
-
-    // ✅ নামগুলো নিচে দেখাও
-    ctx.textAlign = "center";
-    ctx.fillStyle = "#ffffff";
-    let textY = height - 90;
-    let xCenter = width / 2;
-
-    ctx.font = "bold 36px Bangla";
-    ctx.fillText("👑 অ্যাডমিন তালিকা", xCenter, textY - 40);
-
-    let fullText = mixedNames.map(n => n.text).join(", ");
-    const lines = wrapText(ctx, fullText, width - 100);
+    // বাংলা-ইংরেজি detect
+    const allNamesText = adminNames.join(", ");
     ctx.font = "30px Bangla";
-    let posY = textY;
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    const lines = wrapText(ctx, allNamesText, width - 100);
+    let yText = height - (lines.length * 35) - 30;
+    ctx.font = "bold 34px Bangla";
+    ctx.fillText("👑 অ্যাডমিন তালিকা", width / 2, yText - 40);
+    ctx.font = "30px Bangla";
     for (const line of lines) {
-      ctx.fillText(line, xCenter, posY);
-      posY += 35;
+      ctx.fillText(line, width / 2, yText);
+      yText += 35;
     }
 
-    // ✅ Save & send
+    // Save file
     const out = path.join(__dirname, "fm_final.jpg");
     fs.writeFileSync(out, canvas.toBuffer("image/jpeg"));
 
+    // First message (photo)
     await api.sendMessage(
       {
-        body: `🌺 ${groupName}\n👑 অ্যাডমিন (${admins.length}): ${adminNames.join(", ")}\n👥 মোট সদস্য: ${members.length}`,
+        body: `🌺 ${groupName}\n👥 মোট সদস্য: ${members.length}\n👑 অ্যাডমিন সংখ্যা: ${admins.length}`,
         attachment: fs.createReadStream(out)
       },
       event.threadID
     );
 
+    // Second message (full admin list)
+    const adminListText = `👑 গ্রুপের সব অ্যাডমিন (${admins.length} জন):\n\n${adminNames.join("\n")}`;
+    await api.sendMessage(adminListText, event.threadID);
+
     fs.unlinkSync(out);
-  } catch (err) {
-    console.error(err);
-    api.sendMessage("❌ কিছু ভুল হয়েছে কোলাজ তৈরির সময়।", event.threadID);
+  } catch (e) {
+    console.error(e);
+    api.sendMessage("❌ কোলাজ তৈরি করতে সমস্যা হয়েছে।", event.threadID);
   }
 };
 
-// ✅ হেল্পার ফাংশন
 function wrapText(ctx, text, maxWidth) {
   const words = text.split(" ");
   const lines = [];
@@ -173,10 +159,8 @@ function wrapText(ctx, text, maxWidth) {
     if (width > maxWidth && line.length > 0) {
       lines.push(line.trim());
       line = word + " ";
-    } else {
-      line = test;
-    }
+    } else line = test;
   }
   lines.push(line.trim());
   return lines;
-}
+                }
