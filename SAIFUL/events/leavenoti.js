@@ -59,8 +59,10 @@ module.exports.run = async function ({ api, event, Users, Threads }) {
 2️⃣ কেউ যেন আক্রমণাত্মক মন্তব্য না করে ❌  
 3️⃣ সবাই মিলে গ্রুপে শান্তি বজায় রাখুন 🌿  
 ━━━━━━━━━━━━━━━━━━
-👑 Bot Owner : Saiful Islam 💻
-━━━━━━━━━━━━━━━━━━`;
+╔═❖═❖═❖═❖═❖═❖═╗
+ 👑 𝐁𝐨𝐭 𝐎𝐰𝐧𝐞𝐫: 𝐒𝐚𝐢𝐟𝐮𝐥 𝐈𝐬𝐥𝐚𝐦  
+╚═❖═❖═❖═❖═❖═❖═╝
+`;
   } 
   else {
     // === Removed by Admin ===
@@ -84,8 +86,9 @@ module.exports.run = async function ({ api, event, Users, Threads }) {
 3️⃣ বন্ধুত্বপূর্ণ পরিবেশ বজায় রাখুন 🌿  
 4️⃣ সম্পর্ক শেষ নয়, শুধু বিরতি মাত্র 💌  
 ━━━━━━━━━━━━━━━━━━
-👑 Bot Owner : Saiful Islam 💻
-━━━━━━━━━━━━━━━━━━`;
+╔═❖═❖═❖═❖═❖═❖═╗
+ 👑 𝐁𝐨𝐭 𝐎𝐰𝐧𝐞𝐫: 𝐒𝐚𝐢𝐟𝐮𝐥 𝐈𝐬𝐥𝐚𝐦  
+╚═❖═❖═❖═❖═❖═❖═╝`;
   }
 
   // Custom message (if user set)
