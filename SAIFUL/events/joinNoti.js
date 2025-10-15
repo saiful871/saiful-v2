@@ -5,9 +5,9 @@ const Canvas = require("canvas");
 
 module.exports.config = {
   name: "joinnoti",
-  version: "2.2.0",
-  credits: "Maria + rX Abdullah + Saiful Islam + GPT-5 Bangla Edit",
-  description: "Welcome system with Bangla captions, adder photo & thanks message",
+  version: "2.3.0",
+  credits: "Saiful Islam",
+  description: "Welcome system with Bangla captions, adder photo & thanks message (no time)",
   eventType: ["log:subscribe"],
   dependencies: {
     "canvas": "",
@@ -31,17 +31,6 @@ module.exports.run = async function({ api, event, Users }) {
 
   const adderID = event.author;
   const adderName = (await Users.getNameUser(adderID)) || "Unknown";
-
-  // 🕒 সময় ঠিক করা (বাংলা টাইম ফরম্যাট)
-  const now = new Date();
-  const timeString = now.toLocaleString("bn-BD", { 
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-    weekday: "long",
-    day: "2-digit",
-    month: "long"
-  });
 
   // ব্যাকগ্রাউন্ড ও প্রোফাইল ছবি লিঙ্ক
   const bgURL = "https://i.postimg.cc/rmkVVbsM/r07qxo-R-Download.jpg";
@@ -149,13 +138,14 @@ module.exports.run = async function({ api, event, Users }) {
         body: 
 `🤖 𝐁𝐎𝐓 𝐎𝐍𝐋𝐈𝐍𝐄 🤖
 ━━━━━━━━━━━━━━━━━━
-ধন্যবাদ ভাই 💖 @${adderName}  
+ধন্যবাদ  💖 @${adderName}  
 আমাকে গ্রুপে এড করার জন্য 🥰  
 আমি এখন একটিভ আছি 😎  
-🕒 সময়: ${timeString}
 
-🛠️ লিখুন: help — সব কমান্ড দেখতে  
-👑 Bot Owner: Saiful Islam 💻
+🛠️ লিখুন: /help — সব কমান্ড দেখতে  
+╔═❖═❖═❖═❖═❖═❖═╗
+👑 𝐁𝐨𝐭 𝐎𝐰𝐧𝐞𝐫: 𝐒𝐚𝐢𝐟𝐮𝐥 𝐈𝐬𝐥𝐚𝐦  
+╚═❖═❖═❖═❖═❖═❖═╝
 ━━━━━━━━━━━━━━━━━━`,
         mentions: [{ tag: `@${adderName}`, id: adderID }],
         attachment: fs.createReadStream(outPath)
@@ -169,7 +159,6 @@ module.exports.run = async function({ api, event, Users }) {
 🏷️ গ্রুপ: ${groupName}  
 🔢 তুমি এখন ${memberCount} নম্বর সদস্য  
 👤 এড করেছেন: @${adderName}  
-🕒 সময়: ${timeString}
 ━━━━━━━━━━━━━━━━━━
 💖 ধন্যবাদ @${adderName} 💖 তোমার কারণে @${userName} এখন আমাদের সাথে!
 ━━━━━━━━━━━━━━━━━━
