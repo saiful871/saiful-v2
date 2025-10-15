@@ -174,4 +174,4 @@ function wrapText(ctx, text, maxWidth) {
   }
   lines.push(line.trim());
   return lines;
-  }
+        }
