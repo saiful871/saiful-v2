@@ -5,7 +5,7 @@ const Canvas = require("canvas");
 
 module.exports.config = {
   name: "fm",
-  version: "5.2",
+  version: "5.3",
   hasPermssion: 0,
   credits: "Helal + Cyber Sujon + Fix & Upgrade by GPT-5",
   description: "Show full group collage with cover group photo and admin list",
@@ -36,16 +36,37 @@ module.exports.run = async function ({ api, event }) {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
 
-    // ✅ Improved group profile/cover picture system
+    // ✅ Improved & universal group profile/cover picture loader
     let groupPic;
     try {
       const token = "6628568379|c1e620fa708a1d5696fb991c1bde5662";
-      const graphUrl = `https://graph.facebook.com/${groupID}?fields=cover,picture&access_token=${token}`;
-      const gRes = await axios.get(graphUrl);
-      const coverUrl =
-        gRes.data?.cover?.source ||
-        gRes.data?.picture?.data?.url ||
-        `https://graph.facebook.com/${groupID}/picture?width=400&height=400&access_token=${token}`;
+      let coverUrl;
+
+      // 1️⃣ Try Graph API first
+      try {
+        const graphUrl = `https://graph.facebook.com/${groupID}?fields=cover,picture&access_token=${token}`;
+        const gRes = await axios.get(graphUrl);
+        coverUrl =
+          gRes.data?.cover?.source ||
+          gRes.data?.picture?.data?.url ||
+          null;
+      } catch (err) {
+        console.log("⚠️ Graph থেকে কভার লোড হয়নি:", err.message);
+      }
+
+      // 2️⃣ If no image, try Messenger's imageSrc (works for private groups)
+      if (!coverUrl && info.imageSrc) {
+        coverUrl = info.imageSrc;
+        console.log("✅ Messenger imageSrc ব্যবহার করা হলো।");
+      }
+
+      // 3️⃣ Fallback default image
+      if (!coverUrl) {
+        coverUrl = "https://i.imgur.com/0Z8F7jz.png";
+        console.log("⚠️ Default fallback ব্যবহার করা হলো।");
+      }
+
+      // Load the image
       const imgRes = await axios.get(coverUrl, { responseType: "arraybuffer" });
       groupPic = await Canvas.loadImage(Buffer.from(imgRes.data, "binary"));
     } catch (e) {
@@ -53,7 +74,7 @@ module.exports.run = async function ({ api, event }) {
       groupPic = await Canvas.loadImage("https://i.imgur.com/0Z8F7jz.png");
     }
 
-    // 🔹 Draw group profile picture in the top-center (marked place)
+    // 🔹 Draw group profile picture
     if (groupPic) {
       const picSize = 200;
       const picX = width / 2 - picSize / 2;
@@ -195,4 +216,4 @@ function wrapText(ctx, text, maxWidth) {
   }
   lines.push(line.trim());
   return lines;
-                }
+        }
