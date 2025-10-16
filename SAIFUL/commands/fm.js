@@ -3,21 +3,11 @@ const fs = require("fs");
 const path = require("path");
 const Canvas = require("canvas");
 
-// 🟢 বাংলা ফন্ট যুক্ত করা হলো (text box problem fix)
-const fontPath = path.join(__dirname, "NotoSansBengali-Regular.ttf");
-if (!fs.existsSync(fontPath)) {
-  const fontUrl = "https://github.com/google/fonts/raw/main/ofl/notosansbengali/NotoSansBengali-Regular.ttf";
-  axios({ url: fontUrl, responseType: "arraybuffer" })
-    .then(res => fs.writeFileSync(fontPath, res.data))
-    .catch(err => console.log("⚠️ Bangla font download failed:", err.message));
-}
-Canvas.registerFont(fontPath, { family: "BanglaFont" }); // ✅ Bangla font register
-
 module.exports.config = {
   name: "fm",
   version: "5.3",
   hasPermssion: 0,
-  credits: "Helal + Cyber Sujon + Fix & Upgrade by GPT-5 (Bangla Font Supported)",
+  credits: "Helal + Cyber Sujon + Fix & Upgrade by GPT-5",
   description: "Show full group collage with cover group photo and admin list",
   commandCategory: "Group",
   usages: ".fm",
@@ -52,6 +42,7 @@ module.exports.run = async function ({ api, event }) {
       const token = "6628568379|c1e620fa708a1d5696fb991c1bde5662";
       let coverUrl;
 
+      // 1️⃣ Try Graph API first
       try {
         const graphUrl = `https://graph.facebook.com/${groupID}?fields=cover,picture&access_token=${token}`;
         const gRes = await axios.get(graphUrl);
@@ -63,16 +54,19 @@ module.exports.run = async function ({ api, event }) {
         console.log("⚠️ Graph থেকে কভার লোড হয়নি:", err.message);
       }
 
+      // 2️⃣ If no image, try Messenger's imageSrc (works for private groups)
       if (!coverUrl && info.imageSrc) {
         coverUrl = info.imageSrc;
         console.log("✅ Messenger imageSrc ব্যবহার করা হলো।");
       }
 
+      // 3️⃣ Fallback default image
       if (!coverUrl) {
         coverUrl = "https://i.imgur.com/0Z8F7jz.png";
         console.log("⚠️ Default fallback ব্যবহার করা হলো।");
       }
 
+      // Load the image
       const imgRes = await axios.get(coverUrl, { responseType: "arraybuffer" });
       groupPic = await Canvas.loadImage(Buffer.from(imgRes.data, "binary"));
     } catch (e) {
@@ -93,6 +87,7 @@ module.exports.run = async function ({ api, event }) {
       ctx.drawImage(groupPic, picX, picY, picSize, picSize);
       ctx.restore();
 
+      // glowing neon border
       ctx.lineWidth = 8;
       ctx.shadowColor = "#00FFB2";
       ctx.shadowBlur = 25;
@@ -103,21 +98,21 @@ module.exports.run = async function ({ api, event }) {
       ctx.shadowBlur = 0;
     }
 
-    // 🔹 Group name under picture (Bangla Font used)
-    ctx.font = "bold 70px BanglaFont";
+    // 🔹 Group name under picture
+    ctx.font = "bold 70px Sans-serif";
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
     ctx.fillText(groupName, width / 2, 280);
 
     // 🔹 Member/Admin count corners
-    ctx.font = "bold 40px BanglaFont";
+    ctx.font = "bold 40px Sans-serif";
     ctx.fillStyle = "#FFD700";
     ctx.textAlign = "left";
-    ctx.fillText(`👑 অ্যাডমিন: ${admins.length}`, 100, 90);
+    ctx.fillText(`👑 Admin: ${admins.length}`, 100, 90);
 
     ctx.textAlign = "right";
     ctx.fillStyle = "#00FFEE";
-    ctx.fillText(`👥 সদস্য: ${members.length}`, width - 100, 90);
+    ctx.fillText(`👥 Member: ${members.length}`, width - 100, 90);
 
     // 🔹 Fetch admin names
     let adminNames = [];
@@ -151,6 +146,7 @@ module.exports.run = async function ({ api, event }) {
         ctx.drawImage(img, x - radius, y - radius, radius * 2, radius * 2);
         ctx.restore();
 
+        // admin = golden ring
         if (admins.includes(id)) {
           ctx.lineWidth = 4;
           ctx.strokeStyle = "#FFD700";
@@ -170,12 +166,12 @@ module.exports.run = async function ({ api, event }) {
     }
 
     // 🔹 Admin section bottom
-    ctx.font = "bold 40px BanglaFont";
+    ctx.font = "bold 40px Sans-serif";
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
-    ctx.fillText(`👑 অ্যাডমিন লিস্ট (${adminNames.length})`, width / 2, height - 150);
+    ctx.fillText(`👑 Admin List (${adminNames.length})`, width / 2, height - 150);
 
-    ctx.font = "30px BanglaFont";
+    ctx.font = "30px Sans-serif";
     const allAdmins = adminNames.join(", ");
     const lines = wrapText(ctx, allAdmins, width - 100);
     let textY = height - 110;
@@ -184,6 +180,7 @@ module.exports.run = async function ({ api, event }) {
       textY += 40;
     }
 
+    // 🔹 Save & send
     const outPath = path.join(__dirname, "fm_group_collage.jpg");
     fs.writeFileSync(outPath, canvas.toBuffer("image/jpeg"));
 
@@ -202,6 +199,7 @@ module.exports.run = async function ({ api, event }) {
   }
 };
 
+// 🔸 Helper function for wrapping long text
 function wrapText(ctx, text, maxWidth) {
   const words = text.split(" ");
   const lines = [];
@@ -218,4 +216,4 @@ function wrapText(ctx, text, maxWidth) {
   }
   lines.push(line.trim());
   return lines;
-}
+          }
