@@ -5,7 +5,7 @@ const Canvas = require("canvas");
 
 module.exports.config = {
   name: "fm",
-  version: "5.1",
+  version: "5.2",
   hasPermssion: 0,
   credits: "Helal + Cyber Sujon + Fix & Upgrade by GPT-5",
   description: "Show full group collage with cover group photo and admin list",
@@ -36,28 +36,28 @@ module.exports.run = async function ({ api, event }) {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
 
-    // 🔹 Load group profile picture (with fallback)
+    // ✅ Improved group profile/cover picture system
     let groupPic;
     try {
-      const botToken = api?.getAppState?.()?.access_token || "6628568379|c1e620fa708a1d5696fb991c1bde5662";
-      const groupPicUrl = `https://graph.facebook.com/${groupID}/picture?width=400&height=400&access_token=${botToken}`;
-      const response = await axios.get(groupPicUrl, { responseType: "arraybuffer" });
-
-      if (response.status === 200) {
-        groupPic = await Canvas.loadImage(Buffer.from(response.data, "binary"));
-      } else {
-        groupPic = await Canvas.loadImage("https://i.imgur.com/0Z8F7jz.png");
-      }
-    } catch {
-      // যদি গ্রুপের প্রোফাইল না পাওয়া যায়, fallback ইমেজ লোড করো
+      const token = "6628568379|c1e620fa708a1d5696fb991c1bde5662";
+      const graphUrl = `https://graph.facebook.com/${groupID}?fields=cover,picture&access_token=${token}`;
+      const gRes = await axios.get(graphUrl);
+      const coverUrl =
+        gRes.data?.cover?.source ||
+        gRes.data?.picture?.data?.url ||
+        `https://graph.facebook.com/${groupID}/picture?width=400&height=400&access_token=${token}`;
+      const imgRes = await axios.get(coverUrl, { responseType: "arraybuffer" });
+      groupPic = await Canvas.loadImage(Buffer.from(imgRes.data, "binary"));
+    } catch (e) {
+      console.log("⚠️ গ্রুপ প্রোফাইল পিকচার লোড হয়নি:", e.message);
       groupPic = await Canvas.loadImage("https://i.imgur.com/0Z8F7jz.png");
     }
 
-    // 🔹 Draw group profile pic (top center)
+    // 🔹 Draw group profile picture in the top-center (marked place)
     if (groupPic) {
-      const picSize = 160;
+      const picSize = 200;
       const picX = width / 2 - picSize / 2;
-      const picY = 30;
+      const picY = 20;
       ctx.save();
       ctx.beginPath();
       ctx.arc(picX + picSize / 2, picY + picSize / 2, picSize / 2, 0, Math.PI * 2);
@@ -66,21 +66,24 @@ module.exports.run = async function ({ api, event }) {
       ctx.drawImage(groupPic, picX, picY, picSize, picSize);
       ctx.restore();
 
-      // white border around pic
-      ctx.lineWidth = 5;
-      ctx.strokeStyle = "#ffffff";
+      // glowing neon border
+      ctx.lineWidth = 8;
+      ctx.shadowColor = "#00FFB2";
+      ctx.shadowBlur = 25;
+      ctx.strokeStyle = "#00FFB2";
       ctx.beginPath();
-      ctx.arc(picX + picSize / 2, picY + picSize / 2, picSize / 2 + 2, 0, Math.PI * 2);
+      ctx.arc(picX + picSize / 2, picY + picSize / 2, picSize / 2, 0, Math.PI * 2);
       ctx.stroke();
+      ctx.shadowBlur = 0;
     }
 
-    // 🔹 Group name under the picture
+    // 🔹 Group name under picture
     ctx.font = "bold 70px Sans-serif";
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
-    ctx.fillText(groupName, width / 2, 250);
+    ctx.fillText(groupName, width / 2, 280);
 
-    // 🔹 Member/Admin count top corners
+    // 🔹 Member/Admin count corners
     ctx.font = "bold 40px Sans-serif";
     ctx.fillStyle = "#FFD700";
     ctx.textAlign = "left";
@@ -106,7 +109,7 @@ module.exports.run = async function ({ api, event }) {
     const radius = 45;
     const margin = 20;
     const perRow = Math.floor(width / (radius * 2 + margin));
-    let x = radius + margin, y = 320;
+    let x = radius + margin, y = 370;
 
     for (let i = 0; i < members.length; i++) {
       const id = members[i];
@@ -122,7 +125,7 @@ module.exports.run = async function ({ api, event }) {
         ctx.drawImage(img, x - radius, y - radius, radius * 2, radius * 2);
         ctx.restore();
 
-        // যদি অ্যাডমিন হয় — গোল্ড বর্ডার
+        // admin = golden ring
         if (admins.includes(id)) {
           ctx.lineWidth = 4;
           ctx.strokeStyle = "#FFD700";
@@ -156,7 +159,7 @@ module.exports.run = async function ({ api, event }) {
       textY += 40;
     }
 
-    // 🔹 Save & Send
+    // 🔹 Save & send
     const outPath = path.join(__dirname, "fm_group_collage.jpg");
     fs.writeFileSync(outPath, canvas.toBuffer("image/jpeg"));
 
@@ -175,7 +178,7 @@ module.exports.run = async function ({ api, event }) {
   }
 };
 
-// 🔸 Text wrapping helper
+// 🔸 Helper function for wrapping long text
 function wrapText(ctx, text, maxWidth) {
   const words = text.split(" ");
   const lines = [];
@@ -192,4 +195,4 @@ function wrapText(ctx, text, maxWidth) {
   }
   lines.push(line.trim());
   return lines;
-      }
+                }
