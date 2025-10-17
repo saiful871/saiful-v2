@@ -7,7 +7,7 @@ module.exports.config = {
   name: "fm",
   version: "5.3",
   hasPermssion: 0,
-  credits: "Helal + Cyber Sujon + Fix & Upgrade by GPT-5",
+  credits: "Saiful",
   description: "Show full group collage with cover group photo and admin list",
   commandCategory: "Group",
   usages: ".fm",
