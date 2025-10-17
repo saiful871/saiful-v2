@@ -28,6 +28,7 @@ module.exports.handleEvent = async function ({ api, event, Users }) {
     "আসসালামু আলাইকুম": "ওয়া আলাইকুমুস সালাম 🤲✨ কেমন আছেন?",
     "Assalamu Alaikum": "Wa Alaikum Assalam 🤍",
     "bal": "💥🔥🩸 S̴A̴L̴A̴ 💀⚡✨ 🌪️ T̴O̴R̴  B̴A̴L̴  E̴T̴O̴  B̴A̴L̴ B̴A̴L̴   K̴O̴R̴C̴H̴  K̴E̴N̴❗💫 ✂️ H̴A̴T̴E̴  D̴H̴O̴R̴A̴I̴  D̴I̴B̴O̴ 😈💥💀",
+    "🇵🇸": "༆🇵🇸𝗙𝗿𝗲𝗲 𝗙𝗿𝗲𝗲 𝗽𝗮𝗹𝗲𝘀𝘁𝗶𝗻𝗲🇵🇸༆",
 };
   if (responses[msg]) {
     return api.sendMessage(responses[msg], threadID, messageID);
